@@ -24,22 +24,6 @@ module.exports = function(RED) {
 
     const certFile = process.env.PATH_TO_CERTIFICATE_FILE;
     const keyFile = process.env.PATH_TO_KEY_FILE;
-    let cert_contents = "";
-    let key_contents = "";
-    let options = {};
-
-    try {
-        cert_contents = fs.readFileSync(certFile, 'utf-8').toString();
-        key_contents = fs.readFileSync(keyFile, 'utf-8').toString();
-    } catch (err) {
-        console.error('Unable to read certificate and/or key files');
-        throw err;
-    }
-
-    options = {
-        cert: cert_contents,
-        key: key_contents
-    };
 
     let deviceClient;
     let deviceTwin;
@@ -50,8 +34,26 @@ module.exports = function(RED) {
         node.connected = false;
         RED.nodes.createNode(node, config);
 
-        node.log('Creating a Device Client from a x509 connection string')
-        const client = DeviceClient.fromConnectionString(deviceConnectionString, Protocol)
+        node.log('Creating the x509 connection string');
+        let cert_contents = "";
+        let key_contents = "";
+        let options = {};
+    
+        try {
+            cert_contents = fs.readFileSync(certFile, 'utf-8').toString();
+            key_contents = fs.readFileSync(keyFile, 'utf-8').toString();
+        } catch (err) {
+            node.error('Unable to read certificate and/or key files' + err);
+            throw err;
+        }
+    
+        options = {
+            cert: cert_contents,
+            key: key_contents
+        };
+
+        node.log('Creating a Device Client from a x509 connection string');
+        const client = DeviceClient.fromConnectionString(deviceConnectionString, Protocol);
 
         node.log('Setting client options')
         client.setOptions(options)
